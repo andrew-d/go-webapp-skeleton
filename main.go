@@ -57,18 +57,24 @@ func main() {
 	// Create datastore.
 	vars.ds = database.NewDatastore(db)
 
-	// Create router and add middleware.
-	mux := router.New()
+	// Create API router and add middleware.
+	apiMux := router.API()
+	apiMux.Use(middleware.Options)
+	apiMux.Use(middleware.JSON)
 
-	mux.Use(webhelpers.Recoverer)
-	mux.Use(middleware.Options)
-	mux.Use(ContextMiddleware(&vars))
-	mux.Use(middleware.SetHeaders)
+	// Create web router and add middleware.
+	webMux := router.Web()
+	webMux.Use(webhelpers.Recoverer)
+	webMux.Use(ContextMiddleware(&vars))
+	webMux.Use(middleware.SetHeaders)
+
+	// "Mount" the API mux under the web mux, on the "/api" prefix.
+	webMux.Handle("/api/*", apiMux)
 
 	// We wrap the Request ID middleware and our logger 'outside' the mux, so
 	// all requests (including ones that aren't matched by the router) get
 	// logged.
-	var handler http.Handler = mux
+	var handler http.Handler = webMux
 	handler = webhelpers.LogrusLogger(vars.log, handler)
 	handler = webhelpers.RequestID(handler)
 

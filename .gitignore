@@ -29,3 +29,6 @@ _testmain.go
 # OS X stuff
 .DS_Store
 ._*
+
+# Final binary
+/skeleton

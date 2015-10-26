@@ -67,7 +67,7 @@ func renderTemplate(ctx context.Context, w http.ResponseWriter, name string, dat
 	// Ensure the template exists in the map.
 	tmpl, ok := templatesMap[name]
 	if !ok {
-		log.FromContext(ctx).WithField("name", name).Error("The template does not exist")
+		log.FromContext(ctx).WithField("name", name).Error("template does not exist")
 		return fmt.Errorf("The template %s does not exist", name)
 	}
 
@@ -77,7 +77,7 @@ func renderTemplate(ctx context.Context, w http.ResponseWriter, name string, dat
 
 	err := tmpl.ExecuteTemplate(buf, "base", data)
 	if err != nil {
-		log.FromContext(ctx).WithField("err", err).Error("Could not render template")
+		log.FromContext(ctx).WithField("err", err).Error("could not render template")
 		return err
 	}
 
