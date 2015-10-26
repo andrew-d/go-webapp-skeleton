@@ -1,0 +1,15 @@
+{{ define "base" }}
+<html>
+<head>
+    {{ template "title" . }}
+</head>
+<body>
+    {{ template "content" . }}
+    {{ template "scripts" . }}
+</body>
+</html>
+{{ end }}
+
+// We define empty blocks for optional content so we don't have to define a
+// block in child templates that don't need them
+{{ define "scripts" }}{{ end }}

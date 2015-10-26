@@ -1,0 +1,92 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/BurntSushi/migration",
+			"repository": "https://github.com/BurntSushi/migration",
+			"revision": "c45b897f13350786ccaf2b7403b92b1c7ad85844",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/Sirupsen/logrus",
+			"repository": "https://github.com/Sirupsen/logrus",
+			"revision": "62f85a2e398fb4cae34ecd1db528422ede248d3c",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/andrew-d/webhelpers",
+			"repository": "https://github.com/andrew-d/webhelpers",
+			"revision": "f2f7c79c80188345d7893275922ba2e26789057d",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/codegangsta/negroni",
+			"repository": "https://github.com/codegangsta/negroni",
+			"revision": "c7477ad8e330bef55bf1ebe300cf8aa67c492d1b",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/go-sql-driver/mysql",
+			"repository": "https://github.com/go-sql-driver/mysql",
+			"revision": "527bcd55aab2e53314f1a150922560174b493034",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/goji/context",
+			"repository": "https://github.com/goji/context",
+			"revision": "cc5d214cefa9d50beb2cdbf2344eb8c4bd14709b",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/jmoiron/sqlx",
+			"repository": "https://github.com/jmoiron/sqlx",
+			"revision": "ad7f2641d00865a3d5b860ccdade6f8e63dbdae6",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/lib/pq",
+			"repository": "https://github.com/lib/pq",
+			"revision": "83c4f410d0aed80a0f44bac6a576a7f2435791f3",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/mattn/go-sqlite3",
+			"repository": "https://github.com/mattn/go-sqlite3",
+			"revision": "b808f01f660667b1510acf216aa2b9fe7f555ddb",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/oxtoacart/bpool",
+			"repository": "https://github.com/oxtoacart/bpool",
+			"revision": "4e1c5567d7c2dd59fa4c7c83d34c2f3528b025d6",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/tylerb/graceful",
+			"repository": "https://github.com/tylerb/graceful",
+			"revision": "48afeb21e2fcbcff0f30bd5ad6b97747b0fae38e",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/zenazn/goji/web",
+			"repository": "https://github.com/zenazn/goji",
+			"revision": "46b46e00f46dda650e04f0bceeb7c40732cd5988",
+			"branch": "master",
+			"path": "/web"
+		},
+		{
+			"importpath": "golang.org/x/net/context",
+			"repository": "https://go.googlesource.com/net",
+			"revision": "2cba614e8ff920c60240d2677bc019af32ee04e5",
+			"branch": "master",
+			"path": "/context"
+		},
+		{
+			"importpath": "golang.org/x/net/netutil",
+			"repository": "https://go.googlesource.com/net",
+			"revision": "2cba614e8ff920c60240d2677bc019af32ee04e5",
+			"branch": "master",
+			"path": "/netutil"
+		}
+	]
+}

@@ -1,0 +1,13 @@
+{{ define "title"}}<title>Listing People</title>{{ end }}
+
+{{ define "content" }}
+  <h2>All People</h2>
+
+  <ul>
+    {{ range .People }}
+      <li>
+          <a href="/people/{{.ID}}">{{.Name}}</a>
+      </li>
+    {{ end }}
+  </ul>
+{{ end }}
