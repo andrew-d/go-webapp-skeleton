@@ -33,6 +33,7 @@ main() {
 
     # Rename all the import paths in Go files
     find . -type f -name '*.go' \
+        | grep -v '/vendor/' \
         | xargs sed -i .bak -e "s|github.com/andrew-d/go-webapp-skeleton|$new_path|g"
 
     # All done!
