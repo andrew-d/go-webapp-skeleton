@@ -17,13 +17,9 @@ type Config struct {
 	// General configuration
 	Debug bool `json:"debug"`
 
-	// API configuration
-	ApiHost string `json:"api_host"`
-	ApiPort uint16 `json:"api_port"`
-
 	// Web configuration
-	WebHost       string `json:"web_host"`
-	WebPort       uint16 `json:"web_port"`
+	Host          string `json:"host"`
+	Port          uint16 `json:"port"`
 	SessionSecret string `json:"session_secret"`
 
 	// DB configuration
@@ -31,12 +27,8 @@ type Config struct {
 	DbConn string `json:"dbconn"`
 }
 
-func (c *Config) WebHostString() string {
-	return fmt.Sprintf("%s:%d", c.WebHost, c.WebPort)
-}
-
-func (c *Config) ApiHostString() string {
-	return fmt.Sprintf("%s:%d", c.ApiHost, c.ApiPort)
+func (c *Config) HostString() string {
+	return fmt.Sprintf("%s:%d", c.Host, c.Port)
 }
 
 var (
@@ -47,10 +39,8 @@ var (
 func init() {
 	// Set defaults
 	C.Debug = false
-	C.ApiHost = "localhost"
-	C.ApiPort = 3002
-	C.WebHost = "0.0.0.0"
-	C.WebPort = 3001
+	C.Host = "0.0.0.0"
+	C.Port = 3001
 	C.DbType = "sqlite3"
 	C.DbConn = ":memory:"
 

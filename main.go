@@ -79,8 +79,8 @@ func main() {
 	handler = webhelpers.RequestID(handler)
 
 	// Start serving
-	vars.log.Infof("starting server on: %s", conf.C.ApiHostString())
-	graceful.Run(conf.C.ApiHostString(), 10*time.Second, handler)
+	vars.log.Infof("starting server on: %s", conf.C.HostString())
+	graceful.Run(conf.C.HostString(), 10*time.Second, handler)
 	vars.log.Info("server finished")
 }
 
