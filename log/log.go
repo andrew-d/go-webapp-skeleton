@@ -14,8 +14,12 @@ var contextKey private
 func NewLogger() *logrus.Logger {
 	log := logrus.New()
 
-	// TODO: depending on conf.C.Debug, we can set this to print JSON, etc.
-	_ = conf.C.Debug
+	if conf.C.Debug {
+		log.Level = logrus.DebugLevel
+	} else {
+		log.Level = logrus.InfoLevel
+		// TODO: print JSON in prod?
+	}
 
 	return log
 }

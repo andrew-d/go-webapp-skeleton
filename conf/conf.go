@@ -50,7 +50,7 @@ func init() {
 
 	// Set defaults
 	C.Debug = false
-	C.Host = "0.0.0.0"
+	C.Host = "localhost"
 	C.Port = 3001
 	C.DbType = "sqlite3"
 	C.DbConn = ":memory:"
