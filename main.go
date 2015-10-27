@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"net/http"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/andrew-d/go-webapp-skeleton/log"
 	"github.com/andrew-d/go-webapp-skeleton/middleware"
 	"github.com/andrew-d/go-webapp-skeleton/router"
+	"github.com/andrew-d/go-webapp-skeleton/static"
 )
 
 // Generic structure that holds all created things - database connection,
@@ -67,6 +69,48 @@ func main() {
 
 	// "Mount" the API mux under the web mux, on the "/api" prefix.
 	webMux.Handle("/api/*", apiMux)
+
+	// Serve all static assets.
+	serveAssetAt := func(asset, path string) {
+		info, _ := static.AssetInfo(asset)
+		modTime := info.ModTime()
+		data := static.MustAsset(asset)
+
+		webMux.Get(path, func(w http.ResponseWriter, r *http.Request) {
+			vars.log.Debugf("serving asset: %s", asset)
+			http.ServeContent(w, r, asset, modTime, bytes.NewReader(data))
+		})
+	}
+	for _, asset := range static.AssetNames() {
+		vars.log.Debugf("adding route for asset: %s", asset)
+		serveAssetAt(asset, "/static/"+asset)
+	}
+
+	// Special case a bunch of assets that should be served from the root.
+	for _, asset := range []string{
+		"clientaccesspolicy.xml",
+		"crossdomain.xml",
+		"favicon.ico",
+		"humans.txt",
+		"robots.txt",
+	} {
+		// Note: only serve if we have this asset.
+		if _, err := static.Asset(asset); err == nil {
+			vars.log.Debugf("adding special route for asset: %s", asset)
+			serveAssetAt(asset, "/"+asset)
+		}
+	}
+
+	// Serve the index page if we have one.
+	for _, asset := range []string{"index.html", "index.htm"} {
+		// Note: only serve if we have this asset, and only serve the first
+		// option.
+		if _, err := static.Asset(asset); err == nil {
+			vars.log.Debugf("adding index route for asset: %s", asset)
+			serveAssetAt(asset, "/")
+			break
+		}
+	}
 
 	// We wrap the Request ID middleware and our logger 'outside' the mux, so
 	// all requests (including ones that aren't matched by the router) get

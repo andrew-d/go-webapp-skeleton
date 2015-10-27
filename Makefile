@@ -20,6 +20,7 @@ endif
 # Lists of files
 LAYOUT_FILES := $(shell find handler/frontend/layouts -type f -name '*.tmpl')
 TEMPLATE_FILES := $(shell find handler/frontend/templates -type f -name '*.tmpl')
+STATIC_FILES := $(shell find static -type f | grep -v '^.gitignore$$')
 
 # Targets
 all: build
@@ -31,7 +32,7 @@ build: static/bindata.go handler/frontend/layouts/bindata.go handler/frontend/te
 		-ldflags "$(BUILD_VARS)" \
 		.
 
-static/bindata.go:
+static/bindata.go: $(STATIC_FILES)
 	go-bindata \
 		$(BINDATA_FLAGS) \
 		-ignore='(\.gitignore$$|\.map$$)' \
