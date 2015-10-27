@@ -39,8 +39,10 @@ func (c *Config) HostString() string {
 }
 
 var (
-	ConfigPath = filepath.Join(".", "config.json")
-	C          = &Config{}
+	ConfigPath      = filepath.Join(".", "config.json")
+	configPathGiven bool
+
+	C = &Config{}
 )
 
 func init() {
@@ -67,12 +69,19 @@ func init() {
 	// Let the user override the config file path.
 	if cpath := os.Getenv(strings.ToUpper(ProjectName) + "_CONFIG_PATH"); cpath != "" {
 		ConfigPath = cpath
+		configPathGiven = true
 	}
 
 	// Read the configuration file, if present.
 	f, err := os.Open(ConfigPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: could not read configuration file `%s`: %s\n", ConfigPath, err)
+		// We don't print an error if the user did not give a config path, and
+		// the default config file does not exist.
+		if !configPathGiven && os.IsNotExist(err) {
+			// Do nothing
+		} else {
+			fmt.Fprintf(os.Stderr, "Error: could not read configuration file `%s`: %s\n", ConfigPath, err)
+		}
 		return
 	}
 	defer f.Close()
