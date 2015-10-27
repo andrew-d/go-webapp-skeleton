@@ -28,19 +28,16 @@ type Vars struct {
 	log *logrus.Logger
 }
 
-var (
-	// Commit SHA and version for the current build, set by the
-	// compile process.
-	version  string
-	revision string
-)
-
 func main() {
 	var vars Vars
 
 	// Create logger.
 	vars.log = log.NewLogger()
-	vars.log.Info("initializing...")
+	vars.log.WithFields(logrus.Fields{
+		"project_name": conf.ProjectName,
+		"version":      conf.Version,
+		"revision":     conf.Revision,
+	}).Info("initializing...")
 
 	// Connect to the database.
 	db, err := database.Connect(conf.C.DbType, conf.C.DbConn)

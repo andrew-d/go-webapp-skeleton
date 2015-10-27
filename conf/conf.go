@@ -10,8 +10,15 @@ import (
 	"strings"
 )
 
-// This is the main variable we set to name the project.
-const PROJECT_NAME = "skeleton"
+var (
+	// Name of the project
+	ProjectName string
+
+	// Commit SHA and version for the current build, set by the
+	// compile process.
+	Version  string
+	Revision string
+)
 
 type Config struct {
 	// General configuration
@@ -37,6 +44,10 @@ var (
 )
 
 func init() {
+	if ProjectName == "" {
+		panic("no project name set - did you use the Makefile to build?")
+	}
+
 	// Set defaults
 	C.Debug = false
 	C.Host = "0.0.0.0"
@@ -54,7 +65,7 @@ func init() {
 	C.SessionSecret = hex.EncodeToString(buf)
 
 	// Let the user override the config file path.
-	if cpath := os.Getenv(strings.ToUpper(PROJECT_NAME) + "_CONFIG_PATH"); cpath != "" {
+	if cpath := os.Getenv(strings.ToUpper(ProjectName) + "_CONFIG_PATH"); cpath != "" {
 		ConfigPath = cpath
 	}
 
