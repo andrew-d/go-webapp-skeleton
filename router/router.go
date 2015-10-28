@@ -13,7 +13,7 @@ func API() *web.Mux {
 	mux.Get("/api/people", api.ListPeople)
 	mux.Post("/api/people", api.CreatePerson)
 	mux.Get("/api/people/:person", api.GetPerson)
-	mux.Delete("/api/people/:list", api.DeletePerson)
+	mux.Delete("/api/people/:person", api.DeletePerson)
 
 	return mux
 }
