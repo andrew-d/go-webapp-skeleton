@@ -25,8 +25,15 @@ STATIC_FILES := $(shell find static -type f | grep -v '.gitignore$$' | grep -v '
 # Targets
 all: build
 
+.PHONY: check-deps
+check-deps: bindata-exists
+
+.PHONY: bindata-exists
+bindata-exists:
+	@which go-bindata >/dev/null
+
 .PHONY: build
-build: static/bindata.go handler/frontend/layouts/bindata.go handler/frontend/templates/bindata.go
+build: check-deps static/bindata.go handler/frontend/layouts/bindata.go handler/frontend/templates/bindata.go
 	env GO15VENDOREXPERIMENT=1 go build \
 		-o $(NAME) \
 		-v \

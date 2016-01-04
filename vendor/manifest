@@ -32,12 +32,6 @@
 			"branch": "master"
 		},
 		{
-			"importpath": "github.com/goji/context",
-			"repository": "https://github.com/goji/context",
-			"revision": "cc5d214cefa9d50beb2cdbf2344eb8c4bd14709b",
-			"branch": "master"
-		},
-		{
 			"importpath": "github.com/jmoiron/sqlx",
 			"repository": "https://github.com/jmoiron/sqlx",
 			"revision": "ad7f2641d00865a3d5b860ccdade6f8e63dbdae6",
@@ -68,16 +62,43 @@
 			"branch": "master"
 		},
 		{
-			"importpath": "github.com/zenazn/goji/web",
-			"repository": "https://github.com/zenazn/goji",
-			"revision": "46b46e00f46dda650e04f0bceeb7c40732cd5988",
+			"importpath": "goji.io",
+			"repository": "https://github.com/goji/goji",
+			"revision": "9f8871d62a1b65a39bd029cd2c1bf457cbc1d2f6",
+			"branch": "master"
+		},
+		{
+			"importpath": "goji.io/internal",
+			"repository": "https://github.com/goji/goji",
+			"revision": "9f8871d62a1b65a39bd029cd2c1bf457cbc1d2f6",
 			"branch": "master",
-			"path": "/web"
+			"path": "/internal"
+		},
+		{
+			"importpath": "goji.io/middleware",
+			"repository": "https://github.com/goji/goji",
+			"revision": "9f8871d62a1b65a39bd029cd2c1bf457cbc1d2f6",
+			"branch": "master",
+			"path": "/middleware"
+		},
+		{
+			"importpath": "goji.io/pat",
+			"repository": "https://github.com/goji/goji",
+			"revision": "9f8871d62a1b65a39bd029cd2c1bf457cbc1d2f6",
+			"branch": "master",
+			"path": "/pat"
+		},
+		{
+			"importpath": "goji.io/pattern",
+			"repository": "https://github.com/goji/goji",
+			"revision": "9f8871d62a1b65a39bd029cd2c1bf457cbc1d2f6",
+			"branch": "master",
+			"path": "/pattern"
 		},
 		{
 			"importpath": "golang.org/x/net/context",
 			"repository": "https://go.googlesource.com/net",
-			"revision": "2cba614e8ff920c60240d2677bc019af32ee04e5",
+			"revision": "0cb26f788dd4625d1956c6fd97ffc4c90669d129",
 			"branch": "master",
 			"path": "/context"
 		},

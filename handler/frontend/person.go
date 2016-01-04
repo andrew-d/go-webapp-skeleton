@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/goji/context"
-	"github.com/zenazn/goji/web"
+	"goji.io/pat"
+	"golang.org/x/net/context"
 
 	"github.com/andrew-d/go-webapp-skeleton/datastore"
 	"github.com/andrew-d/go-webapp-skeleton/handler"
@@ -16,9 +16,8 @@ import (
 //
 //     GET /people
 //
-func ListPeople(c web.C, w http.ResponseWriter, r *http.Request) {
+func ListPeople(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	var (
-		ctx    = context.FromC(c)
 		limit  = handler.ToLimit(r)
 		offset = handler.ToOffset(r)
 	)
@@ -39,10 +38,9 @@ func ListPeople(c web.C, w http.ResponseWriter, r *http.Request) {
 //
 //     GET /people/:person
 //
-func GetPerson(c web.C, w http.ResponseWriter, r *http.Request) {
+func GetPerson(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	var (
-		ctx   = context.FromC(c)
-		idStr = c.URLParams["person"]
+		idStr = pat.Param(ctx, "person")
 	)
 
 	id, err := strconv.ParseInt(idStr, 10, 64)

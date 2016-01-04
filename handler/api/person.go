@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/goji/context"
-	"github.com/zenazn/goji/web"
+	"goji.io/pat"
+	"golang.org/x/net/context"
 
 	"github.com/andrew-d/go-webapp-skeleton/datastore"
 	"github.com/andrew-d/go-webapp-skeleton/handler"
@@ -18,9 +18,8 @@ import (
 //
 //     GET /api/people
 //
-func ListPeople(c web.C, w http.ResponseWriter, r *http.Request) {
+func ListPeople(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	var (
-		ctx    = context.FromC(c)
 		limit  = handler.ToLimit(r)
 		offset = handler.ToOffset(r)
 	)
@@ -39,10 +38,9 @@ func ListPeople(c web.C, w http.ResponseWriter, r *http.Request) {
 //
 //     GET /api/people/:person
 //
-func GetPerson(c web.C, w http.ResponseWriter, r *http.Request) {
+func GetPerson(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	var (
-		ctx   = context.FromC(c)
-		idStr = c.URLParams["person"]
+		idStr = pat.Param(ctx, "person")
 	)
 
 	id, err := strconv.ParseInt(idStr, 10, 64)
@@ -65,10 +63,9 @@ func GetPerson(c web.C, w http.ResponseWriter, r *http.Request) {
 //
 //     DELETE /api/people/:person
 //
-func DeletePerson(c web.C, w http.ResponseWriter, r *http.Request) {
+func DeletePerson(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	var (
-		ctx   = context.FromC(c)
-		idStr = c.URLParams["person"]
+		idStr = pat.Param(ctx, "person")
 	)
 
 	id, err := strconv.ParseInt(idStr, 10, 64)
@@ -91,11 +88,7 @@ func DeletePerson(c web.C, w http.ResponseWriter, r *http.Request) {
 //
 //     POST /api/people
 //
-func CreatePerson(c web.C, w http.ResponseWriter, r *http.Request) {
-	var (
-		ctx = context.FromC(c)
-	)
-
+func CreatePerson(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	// Unmarshal the person from the payload
 	defer r.Body.Close()
 	in := struct {

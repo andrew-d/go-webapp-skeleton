@@ -3,11 +3,9 @@ package middleware
 import (
 	"net/http"
 	"time"
-
-	"github.com/zenazn/goji/web"
 )
 
-func SetHeaders(c *web.C, h http.Handler) http.Handler {
+func SetHeaders(h http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		// Allow XHR
 		w.Header().Add("Access-Control-Allow-Origin", "*")
