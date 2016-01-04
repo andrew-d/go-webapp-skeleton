@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/andrew-d/webhelpers"
-	"github.com/comail/colog"
 	"github.com/tylerb/graceful"
 	"goji.io"
 	"goji.io/pat"
@@ -22,18 +20,6 @@ import (
 )
 
 func main() {
-	colog.Register()
-	colog.SetFlags(0)
-	colog.ParseFields(true)
-
-	// Set up logger
-	if conf.C.Debug {
-		colog.SetMinLevel(colog.LDebug)
-	} else {
-		colog.SetMinLevel(colog.LInfo)
-		colog.SetFormatter(&colog.JSONFormatter{})
-	}
-
 	log.Printf("initializing project_name=%q version=%q revision=%q",
 		conf.ProjectName,
 		conf.Version,
@@ -59,7 +45,7 @@ func main() {
 
 	// Create web router and add middleware.
 	webMux := router.Web()
-	webMux.Use(webhelpers.Recoverer)
+	webMux.UseC(middleware.Recoverer)
 	webMux.Use(middleware.SetHeaders)
 
 	// "Mount" the API mux under the web mux, on the "/api" prefix.

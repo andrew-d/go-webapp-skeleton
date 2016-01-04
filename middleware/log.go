@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/andrew-d/webhelpers"
 	"goji.io"
 	"golang.org/x/net/context"
 )
@@ -32,7 +31,7 @@ func Logger(h goji.Handler) goji.Handler {
 		log.Printf("request started%s", fieldsBuf.String())
 
 		// Wrap the writer so we can track data written, status, etc.
-		wh := webhelpers.WrapWriter(w)
+		wh := WrapWriter(w)
 
 		// Dispatch to the underlying handler.
 		start := time.Now()

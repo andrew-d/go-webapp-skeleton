@@ -5,9 +5,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/comail/colog"
 )
 
 var (
@@ -21,8 +24,9 @@ var (
 )
 
 type Config struct {
-	// General configuration
-	Debug bool `json:"debug"`
+	// Current environment (e.g. 'production', 'debug').  This is set from
+	// an environment variable.
+	Environment string `json:"-"`
 
 	// Web configuration
 	Host          string `json:"host"`
@@ -38,6 +42,14 @@ func (c *Config) HostString() string {
 	return fmt.Sprintf("%s:%d", c.Host, c.Port)
 }
 
+func (c *Config) IsDebug() bool {
+	return c.Environment == "debug"
+}
+
+func (c *Config) IsProduction() bool {
+	return c.Environment == "production" || c.Environment == "prod"
+}
+
 var (
 	ConfigPath      = filepath.Join(".", "config.json")
 	configPathGiven bool
@@ -51,16 +63,32 @@ func init() {
 	}
 
 	// Set defaults
-	C.Debug = false
+	C.Environment = "debug"
 	C.Host = "localhost"
 	C.Port = 3001
 	C.DbType = "sqlite3"
 	C.DbConn = ":memory:"
 
+	// Load the environment
+	C.Environment = os.Getenv("ENVIRONMENT")
+
+	// Register colog to handle the standard logger output
+	colog.Register()
+	colog.SetFlags(0)
+	colog.ParseFields(true)
+
+	// Set up logger
+	if C.IsDebug() {
+		colog.SetMinLevel(colog.LDebug)
+	} else {
+		colog.SetMinLevel(colog.LInfo)
+		colog.SetFormatter(&colog.JSONFormatter{})
+	}
+
 	// Generate a random session secret.
 	buf := make([]byte, 20)
 	if _, err := rand.Read(buf); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: could not generate random secret: %s\n", err)
+		log.Printf("error: could not generate random secret: %s\n", err)
 		os.Exit(1)
 		return
 	}
@@ -80,13 +108,13 @@ func init() {
 		if !configPathGiven && os.IsNotExist(err) {
 			// Do nothing
 		} else {
-			fmt.Fprintf(os.Stderr, "Error: could not read configuration file `%s`: %s\n", ConfigPath, err)
+			log.Printf("error: could not read configuration file `%s`: %s\n", ConfigPath, err)
 		}
 		return
 	}
 	defer f.Close()
 
 	if err := json.NewDecoder(f).Decode(C); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: could not decode configuration file: %s\n", err)
+		log.Printf("error: could not decode configuration file: %s\n", err)
 	}
 }
