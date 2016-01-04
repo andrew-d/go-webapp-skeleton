@@ -8,12 +8,6 @@
 			"branch": "master"
 		},
 		{
-			"importpath": "github.com/Sirupsen/logrus",
-			"repository": "https://github.com/Sirupsen/logrus",
-			"revision": "62f85a2e398fb4cae34ecd1db528422ede248d3c",
-			"branch": "master"
-		},
-		{
 			"importpath": "github.com/andrew-d/webhelpers",
 			"repository": "https://github.com/andrew-d/webhelpers",
 			"revision": "f2f7c79c80188345d7893275922ba2e26789057d",

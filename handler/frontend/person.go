@@ -1,6 +1,7 @@
 package frontend
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -9,7 +10,6 @@ import (
 
 	"github.com/andrew-d/go-webapp-skeleton/datastore"
 	"github.com/andrew-d/go-webapp-skeleton/handler"
-	"github.com/andrew-d/go-webapp-skeleton/log"
 )
 
 // ListPeople shows a list of all people
@@ -24,7 +24,7 @@ func ListPeople(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 
 	people, err := datastore.ListPeople(ctx, limit, offset)
 	if err != nil {
-		log.FromContext(ctx).WithField("err", err).Error("Error listing people")
+		log.Printf("error: error listing people err=%q", err)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -51,7 +51,7 @@ func GetPerson(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 
 	person, err := datastore.GetPerson(ctx, id)
 	if err != nil {
-		log.FromContext(ctx).WithField("err", err).Error("Error getting person")
+		log.Printf("error: error getting person err=%q", err)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}

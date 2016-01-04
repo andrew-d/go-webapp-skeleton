@@ -3,6 +3,7 @@ package frontend
 import (
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"path/filepath"
 
@@ -11,7 +12,6 @@ import (
 
 	"github.com/andrew-d/go-webapp-skeleton/handler/frontend/layouts"
 	"github.com/andrew-d/go-webapp-skeleton/handler/frontend/templates"
-	"github.com/andrew-d/go-webapp-skeleton/log"
 )
 
 type M map[string]interface{}
@@ -67,7 +67,7 @@ func renderTemplate(ctx context.Context, w http.ResponseWriter, name string, dat
 	// Ensure the template exists in the map.
 	tmpl, ok := templatesMap[name]
 	if !ok {
-		log.FromContext(ctx).WithField("name", name).Error("template does not exist")
+		log.Printf("error: template does not exist name=%q", name)
 		return fmt.Errorf("The template %s does not exist", name)
 	}
 
@@ -77,7 +77,7 @@ func renderTemplate(ctx context.Context, w http.ResponseWriter, name string, dat
 
 	err := tmpl.ExecuteTemplate(buf, "base", data)
 	if err != nil {
-		log.FromContext(ctx).WithField("err", err).Error("could not render template")
+		log.Printf("error: could not render template err=%q name=%q", err, name)
 		return err
 	}
 

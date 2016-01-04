@@ -2,12 +2,12 @@ package main
 
 import (
 	"bytes"
+	"log"
 	"net/http"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/andrew-d/webhelpers"
-	"github.com/jmoiron/sqlx"
+	"github.com/comail/colog"
 	"github.com/tylerb/graceful"
 	"goji.io"
 	"goji.io/pat"
@@ -16,45 +16,41 @@ import (
 	"github.com/andrew-d/go-webapp-skeleton/conf"
 	"github.com/andrew-d/go-webapp-skeleton/datastore"
 	"github.com/andrew-d/go-webapp-skeleton/datastore/database"
-	"github.com/andrew-d/go-webapp-skeleton/log"
 	"github.com/andrew-d/go-webapp-skeleton/middleware"
 	"github.com/andrew-d/go-webapp-skeleton/router"
 	"github.com/andrew-d/go-webapp-skeleton/static"
 )
 
-// Generic structure that holds all created things - database connection,
-// datastore, etc.
-type Vars struct {
-	db  *sqlx.DB
-	ds  datastore.Datastore
-	log *logrus.Logger
-}
-
 func main() {
-	var vars Vars
+	colog.Register()
+	colog.SetFlags(0)
+	colog.ParseFields(true)
 
-	// Create logger.
-	vars.log = log.NewLogger()
-	vars.log.WithFields(logrus.Fields{
-		"project_name": conf.ProjectName,
-		"version":      conf.Version,
-		"revision":     conf.Revision,
-	}).Info("initializing...")
+	// Set up logger
+	if conf.C.Debug {
+		colog.SetMinLevel(colog.LDebug)
+	} else {
+		colog.SetMinLevel(colog.LInfo)
+		colog.SetFormatter(&colog.JSONFormatter{})
+	}
+
+	log.Printf("initializing project_name=%q version=%q revision=%q",
+		conf.ProjectName,
+		conf.Version,
+		conf.Revision)
 
 	// Connect to the database.
 	db, err := database.Connect(conf.C.DbType, conf.C.DbConn)
 	if err != nil {
-		vars.log.WithFields(logrus.Fields{
-			"err":     err,
-			"db_type": conf.C.DbType,
-			"db_conn": conf.C.DbConn,
-		}).Error("Could not connect to database")
+		log.Printf("could not connect to database err=%q db_type=%q db_conn=%q",
+			err,
+			conf.C.DbType,
+			conf.C.DbConn)
 		return
 	}
-	vars.db = db
 
 	// Create datastore.
-	vars.ds = database.NewDatastore(db)
+	ds := database.NewDatastore(db)
 
 	// Create API router and add middleware.
 	apiMux := router.API()
@@ -64,7 +60,6 @@ func main() {
 	// Create web router and add middleware.
 	webMux := router.Web()
 	webMux.Use(webhelpers.Recoverer)
-	webMux.UseC(ContextMiddleware(&vars))
 	webMux.Use(middleware.SetHeaders)
 
 	// "Mount" the API mux under the web mux, on the "/api" prefix.
@@ -77,12 +72,12 @@ func main() {
 		data := static.MustAsset(asset)
 
 		webMux.Handle(pat.Get(path), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			vars.log.Debugf("serving asset: %s", asset)
+			log.Printf("debug: serving asset: %s", asset)
 			http.ServeContent(w, r, asset, modTime, bytes.NewReader(data))
 		}))
 	}
 	for _, asset := range static.AssetNames() {
-		vars.log.Debugf("adding route for asset: %s", asset)
+		log.Printf("debug: adding route for asset: %s", asset)
 		serveAssetAt(asset, "/static/"+asset)
 	}
 
@@ -96,7 +91,7 @@ func main() {
 	} {
 		// Note: only serve if we have this asset.
 		if _, err := static.Asset(asset); err == nil {
-			vars.log.Debugf("adding special route for asset: %s", asset)
+			log.Printf("debug: adding special route for asset: %s", asset)
 			serveAssetAt(asset, "/"+asset)
 		}
 	}
@@ -106,7 +101,7 @@ func main() {
 		// Note: only serve if we have this asset, and only serve the first
 		// option.
 		if _, err := static.Asset(asset); err == nil {
-			vars.log.Debugf("adding index route for asset: %s", asset)
+			log.Printf("debug: adding index route for asset: %s", asset)
 			serveAssetAt(asset, "/")
 			break
 		}
@@ -115,27 +110,21 @@ func main() {
 	// We wrap the Request ID middleware and our logger 'outside' the mux, so
 	// all requests (including ones that aren't matched by the router) get
 	// logged.
-	var handler http.Handler = webMux
-	handler = webhelpers.LogrusLogger(vars.log, handler)
-	handler = webhelpers.RequestID(handler)
+	var handler goji.Handler = webMux
+	handler = middleware.Logger(handler)
+	handler = middleware.RequestID(handler)
+
+	// Create a top-level wrapper that implements ServeHTTP, so we can
+	// inject the root context (context.Background()), along with running
+	// our 'outer' middleware.
+	outer := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.Background()
+		ctx = datastore.NewContext(ctx, ds)
+		handler.ServeHTTPC(ctx, w, r)
+	})
 
 	// Start serving
-	vars.log.Infof("starting server on: %s", conf.C.HostString())
-	graceful.Run(conf.C.HostString(), 10*time.Second, handler)
-	vars.log.Info("server finished")
-}
-
-// ContextMiddleware will add our variables to the per-request context.
-func ContextMiddleware(vars *Vars) func(goji.Handler) goji.Handler {
-	mfn := func(h goji.Handler) goji.Handler {
-		fn := func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-			ctx = datastore.NewContext(ctx, vars.ds)
-			ctx = log.NewContext(ctx, vars.log)
-			h.ServeHTTPC(ctx, w, r)
-		}
-
-		return goji.HandlerFunc(fn)
-	}
-
-	return mfn
+	log.Printf("starting server on: %s", conf.C.HostString())
+	graceful.Run(conf.C.HostString(), 10*time.Second, outer)
+	log.Printf("server finished")
 }
