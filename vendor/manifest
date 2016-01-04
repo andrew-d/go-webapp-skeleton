@@ -8,12 +8,6 @@
 			"branch": "master"
 		},
 		{
-			"importpath": "github.com/andrew-d/webhelpers",
-			"repository": "https://github.com/andrew-d/webhelpers",
-			"revision": "f2f7c79c80188345d7893275922ba2e26789057d",
-			"branch": "master"
-		},
-		{
 			"importpath": "github.com/codegangsta/negroni",
 			"repository": "https://github.com/codegangsta/negroni",
 			"revision": "c7477ad8e330bef55bf1ebe300cf8aa67c492d1b",
