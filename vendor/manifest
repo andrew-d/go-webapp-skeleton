@@ -14,6 +14,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/comail/colog",
+			"repository": "https://github.com/comail/colog",
+			"revision": "83af66bac88aecb569b3867c950a5a3a9b5f991b",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/go-sql-driver/mysql",
 			"repository": "https://github.com/go-sql-driver/mysql",
 			"revision": "527bcd55aab2e53314f1a150922560174b493034",
