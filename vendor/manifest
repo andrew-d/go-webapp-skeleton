@@ -28,7 +28,7 @@
 		{
 			"importpath": "github.com/jmoiron/sqlx",
 			"repository": "https://github.com/jmoiron/sqlx",
-			"revision": "ad7f2641d00865a3d5b860ccdade6f8e63dbdae6",
+			"revision": "54aec3fd91a2b2129ffaca0d652b8a9223ee2d9e",
 			"branch": "master"
 		},
 		{
