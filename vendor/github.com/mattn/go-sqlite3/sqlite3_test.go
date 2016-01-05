@@ -6,15 +6,13 @@
 package sqlite3
 
 import (
-	"crypto/rand"
 	"database/sql"
 	"database/sql/driver"
-	"encoding/hex"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/url"
 	"os"
-	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
@@ -25,15 +23,19 @@ import (
 	"github.com/mattn/go-sqlite3/sqlite3_test"
 )
 
-func TempFilename() string {
-	randBytes := make([]byte, 16)
-	rand.Read(randBytes)
-	return filepath.Join(os.TempDir(), "foo"+hex.EncodeToString(randBytes)+".db")
+func TempFilename(t *testing.T) string {
+	f, err := ioutil.TempFile("", "go-sqlite3-test-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.Close()
+	return f.Name()
 }
 
 func doTestOpen(t *testing.T, option string) (string, error) {
 	var url string
-	tempFilename := TempFilename()
+	tempFilename := TempFilename(t)
+	defer os.Remove(tempFilename)
 	if option != "" {
 		url = tempFilename + option
 	} else {
@@ -84,13 +86,34 @@ func TestOpen(t *testing.T) {
 	}
 }
 
+func TestReadonly(t *testing.T) {
+	tempFilename := TempFilename(t)
+	defer os.Remove(tempFilename)
+
+	db1, err := sql.Open("sqlite3", "file:"+tempFilename)
+	if err != nil {
+		t.Fatal(err)
+	}
+	db1.Exec("CREATE TABLE test (x int, y float)")
+
+	db2, err := sql.Open("sqlite3", "file:"+tempFilename+"?mode=ro")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = db2
+	_, err = db2.Exec("INSERT INTO test VALUES (1, 3.14)")
+	if err == nil {
+		t.Fatal("didn't expect INSERT into read-only database to work")
+	}
+}
+
 func TestClose(t *testing.T) {
-	tempFilename := TempFilename()
+	tempFilename := TempFilename(t)
+	defer os.Remove(tempFilename)
 	db, err := sql.Open("sqlite3", tempFilename)
 	if err != nil {
 		t.Fatal("Failed to open database:", err)
 	}
-	defer os.Remove(tempFilename)
 
 	_, err = db.Exec("drop table foo")
 	_, err = db.Exec("create table foo (id integer)")
@@ -111,12 +134,12 @@ func TestClose(t *testing.T) {
 }
 
 func TestInsert(t *testing.T) {
-	tempFilename := TempFilename()
+	tempFilename := TempFilename(t)
+	defer os.Remove(tempFilename)
 	db, err := sql.Open("sqlite3", tempFilename)
 	if err != nil {
 		t.Fatal("Failed to open database:", err)
 	}
-	defer os.Remove(tempFilename)
 	defer db.Close()
 
 	_, err = db.Exec("drop table foo")
@@ -150,12 +173,12 @@ func TestInsert(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	tempFilename := TempFilename()
+	tempFilename := TempFilename(t)
+	defer os.Remove(tempFilename)
 	db, err := sql.Open("sqlite3", tempFilename)
 	if err != nil {
 		t.Fatal("Failed to open database:", err)
 	}
-	defer os.Remove(tempFilename)
 	defer db.Close()
 
 	_, err = db.Exec("drop table foo")
@@ -215,12 +238,12 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	tempFilename := TempFilename()
+	tempFilename := TempFilename(t)
+	defer os.Remove(tempFilename)
 	db, err := sql.Open("sqlite3", tempFilename)
 	if err != nil {
 		t.Fatal("Failed to open database:", err)
 	}
-	defer os.Remove(tempFilename)
 	defer db.Close()
 
 	_, err = db.Exec("drop table foo")
@@ -276,12 +299,12 @@ func TestDelete(t *testing.T) {
 }
 
 func TestBooleanRoundtrip(t *testing.T) {
-	tempFilename := TempFilename()
+	tempFilename := TempFilename(t)
+	defer os.Remove(tempFilename)
 	db, err := sql.Open("sqlite3", tempFilename)
 	if err != nil {
 		t.Fatal("Failed to open database:", err)
 	}
-	defer os.Remove(tempFilename)
 	defer db.Close()
 
 	_, err = db.Exec("DROP TABLE foo")
@@ -324,13 +347,15 @@ func TestBooleanRoundtrip(t *testing.T) {
 	}
 }
 
+func timezone(t time.Time) string { return t.Format("-07:00") }
+
 func TestTimestamp(t *testing.T) {
-	tempFilename := TempFilename()
+	tempFilename := TempFilename(t)
+	defer os.Remove(tempFilename)
 	db, err := sql.Open("sqlite3", tempFilename)
 	if err != nil {
 		t.Fatal("Failed to open database:", err)
 	}
-	defer os.Remove(tempFilename)
 	defer db.Close()
 
 	_, err = db.Exec("DROP TABLE foo")
@@ -342,6 +367,7 @@ func TestTimestamp(t *testing.T) {
 	timestamp1 := time.Date(2012, time.April, 6, 22, 50, 0, 0, time.UTC)
 	timestamp2 := time.Date(2006, time.January, 2, 15, 4, 5, 123456789, time.UTC)
 	timestamp3 := time.Date(2012, time.November, 4, 0, 0, 0, 0, time.UTC)
+	tzTest := time.FixedZone("TEST", -9*3600-13*60)
 	tests := []struct {
 		value    interface{}
 		expected time.Time
@@ -349,9 +375,9 @@ func TestTimestamp(t *testing.T) {
 		{"nonsense", time.Time{}},
 		{"0000-00-00 00:00:00", time.Time{}},
 		{timestamp1, timestamp1},
-		{timestamp1.Unix(), timestamp1},
-		{timestamp1.UnixNano() / int64(time.Millisecond), timestamp1},
-		{timestamp1.In(time.FixedZone("TEST", -7*3600)), timestamp1},
+		{timestamp2.Unix(), timestamp2.Truncate(time.Second)},
+		{timestamp2.UnixNano() / int64(time.Millisecond), timestamp2.Truncate(time.Millisecond)},
+		{timestamp1.In(tzTest), timestamp1.In(tzTest)},
 		{timestamp1.Format("2006-01-02 15:04:05.000"), timestamp1},
 		{timestamp1.Format("2006-01-02T15:04:05.000"), timestamp1},
 		{timestamp1.Format("2006-01-02 15:04:05"), timestamp1},
@@ -359,6 +385,7 @@ func TestTimestamp(t *testing.T) {
 		{timestamp2, timestamp2},
 		{"2006-01-02 15:04:05.123456789", timestamp2},
 		{"2006-01-02T15:04:05.123456789", timestamp2},
+		{"2006-01-02T05:51:05.123456789-09:13", timestamp2.In(tzTest)},
 		{"2012-11-04", timestamp3},
 		{"2012-11-04 00:00", timestamp3},
 		{"2012-11-04 00:00:00", timestamp3},
@@ -366,6 +393,14 @@ func TestTimestamp(t *testing.T) {
 		{"2012-11-04T00:00", timestamp3},
 		{"2012-11-04T00:00:00", timestamp3},
 		{"2012-11-04T00:00:00.000", timestamp3},
+		{"2006-01-02T15:04:05.123456789Z", timestamp2},
+		{"2012-11-04Z", timestamp3},
+		{"2012-11-04 00:00Z", timestamp3},
+		{"2012-11-04 00:00:00Z", timestamp3},
+		{"2012-11-04 00:00:00.000Z", timestamp3},
+		{"2012-11-04T00:00Z", timestamp3},
+		{"2012-11-04T00:00:00Z", timestamp3},
+		{"2012-11-04T00:00:00.000Z", timestamp3},
 	}
 	for i := range tests {
 		_, err = db.Exec("INSERT INTO foo(id, ts, dt) VALUES(?, ?, ?)", i, tests[i].value, tests[i].value)
@@ -400,6 +435,14 @@ func TestTimestamp(t *testing.T) {
 		if !tests[id].expected.Equal(dt) {
 			t.Errorf("Datetime value for id %v (%v) should be %v, not %v", id, tests[id].value, tests[id].expected, dt)
 		}
+		if timezone(tests[id].expected) != timezone(ts) {
+			t.Errorf("Timezone for id %v (%v) should be %v, not %v", id, tests[id].value,
+				timezone(tests[id].expected), timezone(ts))
+		}
+		if timezone(tests[id].expected) != timezone(dt) {
+			t.Errorf("Timezone for id %v (%v) should be %v, not %v", id, tests[id].value,
+				timezone(tests[id].expected), timezone(dt))
+		}
 	}
 
 	if seen != len(tests) {
@@ -408,13 +451,13 @@ func TestTimestamp(t *testing.T) {
 }
 
 func TestBoolean(t *testing.T) {
-	tempFilename := TempFilename()
+	tempFilename := TempFilename(t)
+	defer os.Remove(tempFilename)
 	db, err := sql.Open("sqlite3", tempFilename)
 	if err != nil {
 		t.Fatal("Failed to open database:", err)
 	}
 
-	defer os.Remove(tempFilename)
 	defer db.Close()
 
 	_, err = db.Exec("CREATE TABLE foo(id INTEGER, fbool BOOLEAN)")
@@ -500,13 +543,12 @@ func TestBoolean(t *testing.T) {
 }
 
 func TestFloat32(t *testing.T) {
-	tempFilename := TempFilename()
+	tempFilename := TempFilename(t)
+	defer os.Remove(tempFilename)
 	db, err := sql.Open("sqlite3", tempFilename)
 	if err != nil {
 		t.Fatal("Failed to open database:", err)
 	}
-
-	defer os.Remove(tempFilename)
 	defer db.Close()
 
 	_, err = db.Exec("CREATE TABLE foo(id INTEGER)")
@@ -538,13 +580,12 @@ func TestFloat32(t *testing.T) {
 }
 
 func TestNull(t *testing.T) {
-	tempFilename := TempFilename()
+	tempFilename := TempFilename(t)
+	defer os.Remove(tempFilename)
 	db, err := sql.Open("sqlite3", tempFilename)
 	if err != nil {
 		t.Fatal("Failed to open database:", err)
 	}
-
-	defer os.Remove(tempFilename)
 	defer db.Close()
 
 	rows, err := db.Query("SELECT 3.141592")
@@ -570,13 +611,12 @@ func TestNull(t *testing.T) {
 }
 
 func TestTransaction(t *testing.T) {
-	tempFilename := TempFilename()
+	tempFilename := TempFilename(t)
+	defer os.Remove(tempFilename)
 	db, err := sql.Open("sqlite3", tempFilename)
 	if err != nil {
 		t.Fatal("Failed to open database:", err)
 	}
-
-	defer os.Remove(tempFilename)
 	defer db.Close()
 
 	_, err = db.Exec("CREATE TABLE foo(id INTEGER)")
@@ -630,14 +670,14 @@ func TestTransaction(t *testing.T) {
 }
 
 func TestWAL(t *testing.T) {
-	tempFilename := TempFilename()
+	tempFilename := TempFilename(t)
+	defer os.Remove(tempFilename)
 	db, err := sql.Open("sqlite3", tempFilename)
 	if err != nil {
 		t.Fatal("Failed to open database:", err)
 	}
-
-	defer os.Remove(tempFilename)
 	defer db.Close()
+
 	if _, err = db.Exec("PRAGMA journal_mode=WAL;"); err != nil {
 		t.Fatal("Failed to Exec PRAGMA journal_mode:", err)
 	}
@@ -678,12 +718,12 @@ func TestWAL(t *testing.T) {
 func TestTimezoneConversion(t *testing.T) {
 	zones := []string{"UTC", "US/Central", "US/Pacific", "Local"}
 	for _, tz := range zones {
-		tempFilename := TempFilename()
+		tempFilename := TempFilename(t)
+		defer os.Remove(tempFilename)
 		db, err := sql.Open("sqlite3", tempFilename+"?_loc="+url.QueryEscape(tz))
 		if err != nil {
 			t.Fatal("Failed to open database:", err)
 		}
-		defer os.Remove(tempFilename)
 		defer db.Close()
 
 		_, err = db.Exec("DROP TABLE foo")
@@ -772,12 +812,12 @@ func TestTimezoneConversion(t *testing.T) {
 }
 
 func TestSuite(t *testing.T) {
-	tempFilename := TempFilename()
+	tempFilename := TempFilename(t)
+	defer os.Remove(tempFilename)
 	db, err := sql.Open("sqlite3", tempFilename+"?_busy_timeout=99999")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(tempFilename)
 	defer db.Close()
 
 	sqlite3_test.RunTests(t, db, sqlite3_test.SQLITE)
@@ -786,12 +826,12 @@ func TestSuite(t *testing.T) {
 // TODO: Execer & Queryer currently disabled
 // https://github.com/mattn/go-sqlite3/issues/82
 func TestExecer(t *testing.T) {
-	tempFilename := TempFilename()
+	tempFilename := TempFilename(t)
+	defer os.Remove(tempFilename)
 	db, err := sql.Open("sqlite3", tempFilename)
 	if err != nil {
 		t.Fatal("Failed to open database:", err)
 	}
-	defer os.Remove(tempFilename)
 	defer db.Close()
 
 	_, err = db.Exec(`
@@ -806,12 +846,12 @@ func TestExecer(t *testing.T) {
 }
 
 func TestQueryer(t *testing.T) {
-	tempFilename := TempFilename()
+	tempFilename := TempFilename(t)
+	defer os.Remove(tempFilename)
 	db, err := sql.Open("sqlite3", tempFilename)
 	if err != nil {
 		t.Fatal("Failed to open database:", err)
 	}
-	defer os.Remove(tempFilename)
 	defer db.Close()
 
 	_, err = db.Exec(`
@@ -847,7 +887,8 @@ func TestQueryer(t *testing.T) {
 }
 
 func TestStress(t *testing.T) {
-	tempFilename := TempFilename()
+	tempFilename := TempFilename(t)
+	defer os.Remove(tempFilename)
 	db, err := sql.Open("sqlite3", tempFilename)
 	if err != nil {
 		t.Fatal("Failed to open database:", err)
@@ -885,7 +926,8 @@ func TestStress(t *testing.T) {
 
 func TestDateTimeLocal(t *testing.T) {
 	zone := "Asia/Tokyo"
-	tempFilename := TempFilename()
+	tempFilename := TempFilename(t)
+	defer os.Remove(tempFilename)
 	db, err := sql.Open("sqlite3", tempFilename+"?_loc="+zone)
 	if err != nil {
 		t.Fatal("Failed to open database:", err)
@@ -952,12 +994,12 @@ func TestVersion(t *testing.T) {
 }
 
 func TestNumberNamedParams(t *testing.T) {
-	tempFilename := TempFilename()
+	tempFilename := TempFilename(t)
+	defer os.Remove(tempFilename)
 	db, err := sql.Open("sqlite3", tempFilename)
 	if err != nil {
 		t.Fatal("Failed to open database:", err)
 	}
-	defer os.Remove(tempFilename)
 	defer db.Close()
 
 	_, err = db.Exec(`
@@ -988,12 +1030,12 @@ func TestNumberNamedParams(t *testing.T) {
 }
 
 func TestStringContainingZero(t *testing.T) {
-	tempFilename := TempFilename()
+	tempFilename := TempFilename(t)
+	defer os.Remove(tempFilename)
 	db, err := sql.Open("sqlite3", tempFilename)
 	if err != nil {
 		t.Fatal("Failed to open database:", err)
 	}
-	defer os.Remove(tempFilename)
 	defer db.Close()
 
 	_, err = db.Exec(`
@@ -1048,7 +1090,8 @@ func (t TimeStamp) Value() (driver.Value, error) {
 }
 
 func TestDateTimeNow(t *testing.T) {
-	tempFilename := TempFilename()
+	tempFilename := TempFilename(t)
+	defer os.Remove(tempFilename)
 	db, err := sql.Open("sqlite3", tempFilename)
 	if err != nil {
 		t.Fatal("Failed to open database:", err)
