@@ -48,6 +48,8 @@ func main() {
 
 	// Create root mux and add common middleware.
 	rootMux := goji.NewMux()
+	rootMux.UseC(middleware.RequestID)
+	rootMux.UseC(middleware.Logger)
 	rootMux.UseC(middleware.Recoverer)
 	rootMux.Use(middleware.SetHeaders)
 
@@ -97,20 +99,13 @@ func main() {
 	rootMux.HandleC(pat.New("/api/*"), apiMux)
 	rootMux.HandleC(pat.New("/*"), webMux)
 
-	// We wrap the Request ID middleware and our logger 'outside' the mux, so
-	// all requests (including ones that aren't matched by the router) get
-	// logged.
-	var handler goji.Handler = rootMux
-	handler = middleware.Logger(handler)
-	handler = middleware.RequestID(handler)
-
-	// Create a top-level wrapper that implements ServeHTTP, so we can
-	// inject the root context (context.Background()), along with running
-	// our 'outer' middleware.
+	// Create a top-level wrapper that implements ServeHTTP, so we can inject
+	// the root (Background) context and any other contexts that we wish to
+	// inject.
 	outer := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.Background()
 		ctx = datastore.NewContext(ctx, ds)
-		handler.ServeHTTPC(ctx, w, r)
+		rootMux.ServeHTTPC(ctx, w, r)
 	})
 
 	// Start serving
