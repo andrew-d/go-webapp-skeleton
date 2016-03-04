@@ -61,6 +61,6 @@ update a given dependency, you can run `gvt update path/to/dep`.
 [efiles]: https://github.com/andrew-d/go-webapp-skeleton/tree/master/static
 [etmpls]: https://github.com/andrew-d/go-webapp-skeleton/tree/master/handler/frontend/templates
 [elayouts]: https://github.com/andrew-d/go-webapp-skeleton/tree/master/handler/frontend/layouts
-[graceful]: https://github.com/andrew-d/go-webapp-skeleton/blob/master/main.go#L124
+[graceful]: https://github.com/andrew-d/go-webapp-skeleton/blob/master/main.go#L113
 [bindata]: https://github.com/jteeuwen/go-bindata
 [gvt]: https://github.com/FiloSottile/gvt
