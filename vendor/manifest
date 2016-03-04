@@ -16,31 +16,31 @@
 		{
 			"importpath": "github.com/comail/colog",
 			"repository": "https://github.com/comail/colog",
-			"revision": "83af66bac88aecb569b3867c950a5a3a9b5f991b",
+			"revision": "fa0611f228ad4add3d26aa2fd9583a81a841a186",
 			"branch": "master"
 		},
 		{
 			"importpath": "github.com/go-sql-driver/mysql",
 			"repository": "https://github.com/go-sql-driver/mysql",
-			"revision": "527bcd55aab2e53314f1a150922560174b493034",
+			"revision": "1fca743146605a172a266e1654e01e5cd5669bee",
 			"branch": "master"
 		},
 		{
 			"importpath": "github.com/jmoiron/sqlx",
 			"repository": "https://github.com/jmoiron/sqlx",
-			"revision": "54aec3fd91a2b2129ffaca0d652b8a9223ee2d9e",
+			"revision": "398dd5876282499cdfd4cb8ea0f31a672abe9495",
 			"branch": "master"
 		},
 		{
 			"importpath": "github.com/lib/pq",
 			"repository": "https://github.com/lib/pq",
-			"revision": "11fc39a580a008f1f39bb3d11d984fb34ed778d9",
+			"revision": "e182dc4027e2ded4b19396d638610f2653295f36",
 			"branch": "master"
 		},
 		{
 			"importpath": "github.com/mattn/go-sqlite3",
 			"repository": "https://github.com/mattn/go-sqlite3",
-			"revision": "5510da399572b4962c020184bb291120c0a412e2",
+			"revision": "45f056ca8f5ef4ee3f68796167a0a0e6a6214813",
 			"branch": "master"
 		},
 		{
@@ -52,54 +52,54 @@
 		{
 			"importpath": "github.com/tylerb/graceful",
 			"repository": "https://github.com/tylerb/graceful",
-			"revision": "48afeb21e2fcbcff0f30bd5ad6b97747b0fae38e",
+			"revision": "7116c7a8115899e80197cd9e0b97998c0f97ed8e",
 			"branch": "master"
 		},
 		{
 			"importpath": "goji.io",
 			"repository": "https://github.com/goji/goji",
-			"revision": "9f8871d62a1b65a39bd029cd2c1bf457cbc1d2f6",
+			"revision": "186fdaee47961b336e41716140ce0bd1ecefe98c",
 			"branch": "master"
 		},
 		{
 			"importpath": "goji.io/internal",
 			"repository": "https://github.com/goji/goji",
-			"revision": "9f8871d62a1b65a39bd029cd2c1bf457cbc1d2f6",
+			"revision": "186fdaee47961b336e41716140ce0bd1ecefe98c",
 			"branch": "master",
 			"path": "/internal"
 		},
 		{
 			"importpath": "goji.io/middleware",
 			"repository": "https://github.com/goji/goji",
-			"revision": "9f8871d62a1b65a39bd029cd2c1bf457cbc1d2f6",
+			"revision": "186fdaee47961b336e41716140ce0bd1ecefe98c",
 			"branch": "master",
 			"path": "/middleware"
 		},
 		{
 			"importpath": "goji.io/pat",
 			"repository": "https://github.com/goji/goji",
-			"revision": "9f8871d62a1b65a39bd029cd2c1bf457cbc1d2f6",
+			"revision": "186fdaee47961b336e41716140ce0bd1ecefe98c",
 			"branch": "master",
 			"path": "/pat"
 		},
 		{
 			"importpath": "goji.io/pattern",
 			"repository": "https://github.com/goji/goji",
-			"revision": "9f8871d62a1b65a39bd029cd2c1bf457cbc1d2f6",
+			"revision": "186fdaee47961b336e41716140ce0bd1ecefe98c",
 			"branch": "master",
 			"path": "/pattern"
 		},
 		{
 			"importpath": "golang.org/x/net/context",
 			"repository": "https://go.googlesource.com/net",
-			"revision": "0cb26f788dd4625d1956c6fd97ffc4c90669d129",
+			"revision": "d58ca6618b994150e624f6888d871f4709db51a0",
 			"branch": "master",
 			"path": "/context"
 		},
 		{
 			"importpath": "golang.org/x/net/netutil",
 			"repository": "https://go.googlesource.com/net",
-			"revision": "2cba614e8ff920c60240d2677bc019af32ee04e5",
+			"revision": "d58ca6618b994150e624f6888d871f4709db51a0",
 			"branch": "master",
 			"path": "/netutil"
 		}

@@ -71,14 +71,9 @@ func (rt *router) route(ctx context.Context, r *http.Request) context.Context {
 	}
 
 	path := ctx.Value(internal.Path).(string)
-
-	var routes []int
-	for {
-		routes = append(routes, tn.routes...)
-
+	for path != "" {
 		i := sort.Search(len(tn.children), func(i int) bool {
-			p := tn.children[i].prefix
-			return path < p || strings.HasPrefix(path, p)
+			return path[0] <= tn.children[i].prefix[0]
 		})
 		if i == len(tn.children) || !strings.HasPrefix(path, tn.children[i].prefix) {
 			break
@@ -87,8 +82,7 @@ func (rt *router) route(ctx context.Context, r *http.Request) context.Context {
 		path = path[len(tn.children[i].prefix):]
 		tn = tn.children[i].node
 	}
-	sort.Ints(routes)
-	for _, i := range routes {
+	for _, i := range tn.routes {
 		if ctx := rt.routes[i].Match(ctx, r); ctx != nil {
 			return &match{ctx, rt.routes[i].Pattern, rt.routes[i].Handler}
 		}
@@ -128,6 +122,9 @@ func longestPrefix(a, b string) string {
 func (tn *trieNode) add(prefix string, idx int) {
 	if len(prefix) == 0 {
 		tn.routes = append(tn.routes, idx)
+		for i := range tn.children {
+			tn.children[i].node.add(prefix, idx)
+		}
 		return
 	}
 
@@ -136,11 +133,13 @@ func (tn *trieNode) add(prefix string, idx int) {
 		return ch <= tn.children[i].prefix[0]
 	})
 
-	for ; i < len(tn.children); i++ {
-		if tn.children[i].prefix[0] > ch {
-			break
-		}
-
+	if i == len(tn.children) || ch != tn.children[i].prefix[0] {
+		routes := append([]int(nil), tn.routes...)
+		tn.children = append(tn.children, child{
+			prefix: prefix,
+			node:   &trieNode{routes: append(routes, idx)},
+		})
+	} else {
 		lp := longestPrefix(prefix, tn.children[i].prefix)
 
 		if tn.children[i].prefix == lp {
@@ -152,18 +151,13 @@ func (tn *trieNode) add(prefix string, idx int) {
 		split.children = []child{
 			{tn.children[i].prefix[len(lp):], tn.children[i].node},
 		}
+		split.routes = append([]int(nil), tn.routes...)
 		split.add(prefix[len(lp):], idx)
 
 		tn.children[i].prefix = lp
 		tn.children[i].node = split
-		sort.Sort(byPrefix(tn.children))
-		return
 	}
 
-	tn.children = append(tn.children, child{
-		prefix: prefix,
-		node:   &trieNode{routes: []int{idx}},
-	})
 	sort.Sort(byPrefix(tn.children))
 }
 

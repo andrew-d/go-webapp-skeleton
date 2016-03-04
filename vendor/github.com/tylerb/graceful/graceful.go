@@ -91,6 +91,19 @@ func Run(addr string, timeout time.Duration, n http.Handler) {
 
 }
 
+// RunWithErr is an alternative version of Run function which can return error.
+//
+// Unlike Run this version will not exit the program if an error is encountered but will
+// return it instead.
+func RunWithErr(addr string, timeout time.Duration, n http.Handler) error {
+	srv := &Server{
+		Timeout: timeout,
+		Server:  &http.Server{Addr: addr, Handler: n},
+	}
+
+	return srv.ListenAndServe()
+}
+
 // ListenAndServe is equivalent to http.Server.ListenAndServe with graceful shutdown enabled.
 //
 // timeout is the duration to wait until killing active requests and stopping the server.
@@ -227,11 +240,23 @@ func (srv *Server) Serve(listener net.Listener) error {
 	if !srv.NoSignalHandling {
 		signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
 	}
-	go srv.handleInterrupt(interrupt, listener)
+	quitting := make(chan struct{})
+	go srv.handleInterrupt(interrupt, quitting, listener)
 
 	// Serve with graceful listener.
 	// Execution blocks here until listener.Close() is called, above.
 	err := srv.Server.Serve(listener)
+	if err != nil {
+		// If the underlying listening is closed, Serve returns an error
+		// complaining about listening on a closed socket. This is expected, so
+		// let's ignore the error if we are the ones who explicitly closed the
+		// socket.
+		select {
+		case <-quitting:
+			err = nil
+		default:
+		}
+	}
 
 	srv.shutdown(shutdown, kill)
 
@@ -302,13 +327,14 @@ func (srv *Server) interruptChan() chan os.Signal {
 	return srv.interrupt
 }
 
-func (srv *Server) handleInterrupt(interrupt chan os.Signal, listener net.Listener) {
+func (srv *Server) handleInterrupt(interrupt chan os.Signal, quitting chan struct{}, listener net.Listener) {
 	<-interrupt
 
 	if srv.BeforeShutdown != nil {
 		srv.BeforeShutdown()
 	}
 
+	close(quitting)
 	srv.SetKeepAlivesEnabled(false)
 	_ = listener.Close() // we are shutting down anyway. ignore error.
 
