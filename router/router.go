@@ -12,7 +12,7 @@ import (
 )
 
 func API() *goji.Mux {
-	mux := goji.NewMux()
+	mux := goji.SubMux()
 
 	// We pass the routes as relative to the point where the API router
 	// will be mounted.  The super-router will strip any prefix off for us.
@@ -31,7 +31,7 @@ func API() *goji.Mux {
 }
 
 func Web() *goji.Mux {
-	mux := goji.NewMux()
+	mux := goji.SubMux()
 
 	mux.HandleFuncC(pat.Get("/people"), frontend.ListPeople)
 	mux.HandleFuncC(pat.Get("/people/:person"), frontend.GetPerson)

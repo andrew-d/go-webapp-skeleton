@@ -43,15 +43,15 @@ func main() {
 	apiMux.Use(middleware.Options)
 	apiMux.Use(middleware.JSON)
 
-	// Create web router and add middleware.
+	// Create web router.
 	webMux := router.Web()
-	webMux.UseC(middleware.Recoverer)
-	webMux.Use(middleware.SetHeaders)
 
-	// "Mount" the API mux under the web mux, on the "/api" prefix.
-	webMux.HandleC(pat.New("/api/*"), apiMux)
+	// Create root mux and add common middleware.
+	rootMux := goji.NewMux()
+	rootMux.UseC(middleware.Recoverer)
+	rootMux.Use(middleware.SetHeaders)
 
-	// Serve all static assets.
+	// Serve all static assets from the root.
 	serveAssetAt := func(asset, path string) {
 		info, _ := static.AssetInfo(asset)
 		modTime := info.ModTime()
@@ -93,10 +93,14 @@ func main() {
 		}
 	}
 
+	// Mount the API/Web muxes last (since order matters).
+	rootMux.HandleC(pat.New("/api/*"), apiMux)
+	rootMux.HandleC(pat.New("/*"), webMux)
+
 	// We wrap the Request ID middleware and our logger 'outside' the mux, so
 	// all requests (including ones that aren't matched by the router) get
 	// logged.
-	var handler goji.Handler = webMux
+	var handler goji.Handler = rootMux
 	handler = middleware.Logger(handler)
 	handler = middleware.RequestID(handler)
 
